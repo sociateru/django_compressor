@@ -21,6 +21,7 @@ class CompressorConf(AppConf):
 
     CSS_COMPRESSOR = 'compressor.css.CssCompressor'
     JS_COMPRESSOR = 'compressor.js.JsCompressor'
+    JS_ADD_SEMICOLON = True
 
     URL = None
     ROOT = None

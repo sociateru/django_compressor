@@ -40,6 +40,13 @@ class JsCompressor(Compressor):
         return self.split_content
 
     def output(self, *args, **kwargs):
+        forced = kwargs.get('forced', False)
+        will_compress = settings.COMPRESS_ENABLED or forced
+        if will_compress and settings.COMPRESS_JS_ADD_SEMICOLON:
+            join_with = ';\n'
+        else:
+            join_with = '\n'
+
         if (settings.COMPRESS_ENABLED or settings.COMPRESS_PRECOMPILERS or
                 kwargs.get('forced', False)):
             self.split_contents()
@@ -48,5 +55,17 @@ class JsCompressor(Compressor):
                 for extra, subnode in self.extra_nodes:
                     subnode.extra_context.update({'extra': extra})
                     ret.append(subnode.output(*args, **kwargs))
-                return '\n'.join(ret)
-        return super(JsCompressor, self).output(*args, **kwargs)
+                return join_with.join(ret)
+
+        content = self.filter_input(forced)
+
+        if not content:
+            return ''
+
+        mode = args[0] if args else kwargs['mode']
+        output = join_with.join(content)
+        if will_compress:
+            filtered_output = self.filter_output(output)
+            return self.handle_output(mode, filtered_output, forced)
+
+        return output
